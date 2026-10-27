@@ -25,7 +25,7 @@ public class POEPart1 {
 
 
     
-         Scanner input = new Scanner(System.in);
+        Scanner input = new Scanner(System.in);
         Login login = new Login();
  
         System.out.println("=== Registration and Login ===");
@@ -71,6 +71,9 @@ public class POEPart1 {
             return;
         }
  
+        String senderNumber = login.getCellPhoneNumber();
+        Message messageTools = new Message();
+ 
         System.out.println("\nWelcome to QuickChat.");
  
         System.out.print("How many messages would you like to enter? ");
@@ -82,6 +85,7 @@ public class POEPart1 {
             System.out.println("\n1) Send Messages");
             System.out.println("2) Show recently sent messages");
             System.out.println("3) Quit");
+            System.out.println("4) Stored Messages");
             System.out.print("Choose an option: ");
             int choice = Integer.parseInt(input.nextLine());
  
@@ -107,38 +111,91 @@ public class POEPart1 {
                         continue;
                     }
  
-                    String messageID = message.generateMessageID();
-                    String hash = message.createMessageHash(messageID, i, text);
-                    message.setDetails(messageID, recipient, text, hash);
- 
                     System.out.println("\n1) Send Message");
                     System.out.println("2) Disregard Message");
                     System.out.println("3) Store Message to send later");
                     System.out.print("Choose an option: ");
                     int sendChoice = Integer.parseInt(input.nextLine());
  
-                    String resultMessage = message.sentMessage(sendChoice);
+                    String flag;
+                    String resultMessage;
+ 
+                    if (sendChoice == 1) {
+                        flag = "Sent";
+                        resultMessage = "Message successfully sent.";
+                    } else if (sendChoice == 2) {
+                        flag = "Disregard";
+                        resultMessage = "Press 0 to delete the message.";
+                    } else if (sendChoice == 3) {
+                        flag = "Stored";
+                        resultMessage = "Message successfully stored.";
+                    } else {
+                        System.out.println("Invalid option selected.");
+                        continue;
+                    }
+ 
+                    message.addMessage(senderNumber, recipient, text, flag);
                     System.out.println(resultMessage);
  
-                    if (sendChoice == 1 || sendChoice == 3) {
+                    if (flag.equals("Stored")) {
                         message.storeMessageToFile();
                     }
  
-                    if (sendChoice == 1) {
-                        System.out.println("\nMessage ID: " + messageID);
-                        System.out.println("Message Hash: " + hash);
-                        System.out.println("Recipient: " + recipient);
-                        System.out.println("Message: " + text);
+                    if (flag.equals("Sent")) {
+                        System.out.println("\nMessage ID: " + message.getMessageID());
+                        System.out.println("Message Hash: " + message.getMessageHash());
+                        System.out.println("Recipient: " + message.getRecipient());
+                        System.out.println("Message: " + message.getMessageText());
                     }
                 }
  
-                Message totals = new Message();
-                System.out.println("\nTotal messages sent: " + totals.returnTotalMessagesSent());
+                System.out.println("\nTotal messages sent: " + messageTools.returnTotalMessagesSent());
  
             } else if (choice == 2) {
                 System.out.println("Coming Soon.");
             } else if (choice == 3) {
                 running = false;
+            } else if (choice == 4) {
+                messageTools.loadStoredMessagesFromFile();
+ 
+                boolean inStoredMenu = true;
+ 
+                while (inStoredMenu) {
+                    System.out.println("\n--- Stored Messages ---");
+                    System.out.println("1) Display sender and recipient of all stored messages");
+                    System.out.println("2) Display the longest stored message");
+                    System.out.println("3) Search for a message ID");
+                    System.out.println("4) Search for all messages stored for a recipient");
+                    System.out.println("5) Delete a message using the message hash");
+                    System.out.println("6) Display a report of all stored messages");
+                    System.out.println("7) Back to main menu");
+                    System.out.print("Choose an option: ");
+                    int storedChoice = Integer.parseInt(input.nextLine());
+ 
+                    if (storedChoice == 1) {
+                        System.out.println(messageTools.displayStoredSendersAndRecipients());
+                    } else if (storedChoice == 2) {
+                        System.out.println(messageTools.displayLongestStoredMessage());
+                    } else if (storedChoice == 3) {
+                        System.out.print("Enter the message ID: ");
+                        String searchID = input.nextLine();
+                        System.out.println(messageTools.searchStoredMessageByID(searchID));
+                    } else if (storedChoice == 4) {
+                        System.out.print("Enter the recipient cell number: ");
+                        String searchRecipient = input.nextLine();
+                        System.out.println(messageTools.searchStoredMessagesByRecipient(searchRecipient));
+                    } else if (storedChoice == 5) {
+                        System.out.print("Enter the message hash: ");
+                        String searchHash = input.nextLine();
+                        System.out.println(messageTools.deleteStoredMessageByHash(searchHash));
+                    } else if (storedChoice == 6) {
+                        System.out.println(messageTools.displayStoredMessagesReport());
+                    } else if (storedChoice == 7) {
+                        inStoredMenu = false;
+                    } else {
+                        System.out.println("Invalid option, please try again.");
+                    }
+                }
             } else {
                 System.out.println("Invalid option, please try again.");
             }
